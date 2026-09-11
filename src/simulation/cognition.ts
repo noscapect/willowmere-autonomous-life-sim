@@ -1,5 +1,5 @@
 import type { ActionKind, ActionTarget, Agent, AgentPerception, KnownFact } from '../domain/types';
-export type Decision={goal:string;target:ActionTarget;action:Extract<ActionKind,'Drink'|'Eat'|'Sleep'|'TalkTo'|'Observe'>};
+export type Decision={goal:string;target:ActionTarget;action:Extract<ActionKind,'Drink'|'Eat'|'Sleep'|'TalkTo'|'Observe'>;utterance?:string};
 export type CognitionContext={agent:Agent;perception:AgentPerception;knowledge:KnownFact[];tick:number;seed:number};
 export interface CognitionProvider { decide(context:CognitionContext):Decision|null }
 const known=(facts:KnownFact[],id:string)=>facts.find(f=>f.id===id);

@@ -1,0 +1,5 @@
+import 'dotenv/config';
+import { createWorld } from '../src/domain/world';
+import { contextFor, normalizeDecision } from '../src/cognition/contracts';
+import { ollamaDecision, ollamaModels } from '../server/cognition';
+const models=await ollamaModels();const requested=process.argv[2]||process.env.OLLAMA_MODEL||models[0]?.name;if(!requested)throw new Error('No Ollama model found. Pass a model: npm run smoke:ollama -- model:tag');const world=createWorld(),agent=world.agents[0];agent.perception.agents=[];const context=contextFor(agent,world),started=Date.now();const response=await ollamaDecision(context,requested);const decision=normalizeDecision(response,context);if(!decision)throw new Error('Model response was schema-valid but did not select a legal candidate');console.log(`model: ${requested}`);console.log(`latency_ms: ${Date.now()-started}`);console.log(`decision: ${decision.action} → ${response.targetId}`);console.log(`intent: ${decision.intent}`);if(decision.utterance)console.log(`utterance: ${decision.utterance}`);console.log('schema: valid');

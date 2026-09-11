@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "serve": "tsx server.ts --production",
+    "smoke:ollama": "tsx scripts/ollama-smoke.ts",
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "lint": "eslint .",
