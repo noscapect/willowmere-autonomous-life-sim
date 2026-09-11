@@ -25,3 +25,11 @@ Environment, cabins, humans, vegetation, and props are procedural Three.js geome
 ## Next engineering milestones
 
 Add occlusion-aware perception and JSON serialization; add a strict JSON-schema LLM adapter; then broaden actions and systems without widening authority beyond validated simulation rules.
+
+## Persistent minds
+
+`server.ts` exposes same-origin cognition endpoints. It probes Ollama model tags and sends compact, candidate-bound structured requests to Ollama; OpenAI has the same normalized provider shape and remains unavailable without a server-side key. The browser never talks to an LLM server directly.
+
+The asynchronous `CognitionCoordinator` is outside `tickWorld`: it uses a fair round-robin queue, permits one in-flight local request by default, applies a real-time cooldown, and delivers completed proposals through a mailbox-like callback. `applyExternalDecision` clones and revalidates a proposal before it becomes a plan. Model text can never mutate simulation truth. An emergency reflex provider maintains survival when remote/local inference is pending or unavailable.
+
+Saves are versioned local-storage envelopes containing only serializable world truth. Provider preferences are separate and non-secret; pending work, controllers, telemetry, and credentials are never serialized.
