@@ -12,7 +12,9 @@ This establishes the required boundary: world truth → local perception/knowled
 
 ## Rendering boundary and presentation
 
-Memories include timestamps, participants, place, confidence, and importance; recent memories are bounded separately from long-term memories. `src/rendering` consumes simulation snapshots but contains no simulation effects or Three.js types in the domain. `toWorld` maps simulation x/y into render X/Z with `(value - 50) / 4`; render Y is purely terrain/model height. React Three Fiber renders procedural low-poly/stylized terrain, river, bridge, cabins, props, residents, time-aware lighting, and an observer camera. Decorative scatter derives from deterministic numeric seeds and never affects navigation.
+Memories include timestamps, participants, place, confidence, and importance; recent memories are bounded separately from long-term memories. `src/rendering` consumes simulation snapshots but contains no simulation effects or Three.js types in the domain. `toWorld` maps simulation x/y into render X/Z with `(value - 50) / 4`; `getTerrainHeight` maps that same position to decorative visual Y only. React Three Fiber renders a broad terrain skirt beyond the authoritative area, river banks, physical path ribbons, instanced grass/flower scatter, background forest, detailed cabins, articulated procedural people, time-aware lighting, and an observer camera. Decoration derives from deterministic numeric seeds and never affects navigation.
+
+The authoritative world remains the central 0–100 area. Visual terrain/forest extends beyond it solely to conceal map edges and establish landscape context. The renderer is lazy-loaded from the React UI, moving the heavier Three.js code out of the initial application chunk.
 
 Navigation now returns a `PathResult`: either found points or an explicit unreachable result. The engine never substitutes a direct line. It writes a low-importance navigation failure, suppresses the failed target for that agent, and returns to an idle state for fresh cognition.
 

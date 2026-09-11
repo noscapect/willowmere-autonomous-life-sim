@@ -5,3 +5,5 @@ No raster, sprite, sound, texture, or game asset is bundled. The scene is drawn 
 The interface imports three fonts from Google Fonts: [Fraunces](https://fonts.google.com/specimen/Fraunces), [Manrope](https://fonts.google.com/specimen/Manrope), and [DM Mono](https://fonts.google.com/specimen/DM+Mono). Each is available under the SIL Open Font License 1.1. They may be removed without affecting simulation behavior.
 
 The 3D renderer uses [Three.js](https://threejs.org/), [React Three Fiber](https://github.com/pmndrs/react-three-fiber), and [drei](https://github.com/pmndrs/drei), each under the MIT License. They are code dependencies, not bundled art assets. Terrain, residents, cabins, vegetation, props, and lighting are authored as project procedural geometry; no third-party 3D model, texture, HDRI, or sound asset is bundled.
+
+This visual quality pass continues to use only project-generated geometry and materials. No external visual asset was downloaded or bundled.
