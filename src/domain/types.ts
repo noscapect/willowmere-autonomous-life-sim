@@ -1,0 +1,11 @@
+export type NeedName = 'hunger' | 'thirst' | 'energy' | 'social' | 'comfort';
+export type Needs = Record<NeedName, number>;
+export type Vec = { x: number; y: number };
+export type ActionKind = 'Idle' | 'WalkTo' | 'Observe' | 'TalkTo' | 'PickUp' | 'PutDown' | 'Eat' | 'Drink' | 'Sleep';
+export type Action = { kind: ActionKind; targetId?: string; target?: Vec; progress: number; duration: number; state: 'running' | 'success' | 'failed' };
+export type Memory = { id: string; timestamp: number; type: string; participants: string[]; place: string; description: string; importance: number; confidence: number };
+export type Relationship = { agentId: string; affinity: number; label: string };
+export type WorldObject = { id: string; name: string; type: 'well' | 'berryBush' | 'bed' | 'bench' | 'cabin' | 'tree' | 'table'; position: Vec; usable: boolean; stock?: number };
+export type Agent = { id: string; name: string; age: number; color: string; shirt: string; position: Vec; homeId: string; traits: string[]; preferences: string[]; needs: Needs; inventory: string[]; knowledge: string[]; recentMemories: Memory[]; longTermMemories: Memory[]; relationships: Relationship[]; currentGoal: string; currentAction: Action; facing: 'left' | 'right' };
+export type WorldEvent = Memory & { agentName: string };
+export type SimulationWorld = { tick: number; day: number; minute: number; agents: Agent[]; objects: WorldObject[]; events: WorldEvent[]; seed: number };
