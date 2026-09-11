@@ -10,6 +10,6 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
-  "dependencies": { "@vitejs/plugin-react": "latest", "vite": "latest", "react": "latest", "react-dom": "latest" },
-  "devDependencies": { "@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "typescript": "latest", "vitest": "latest", "eslint": "latest", "@eslint/js": "latest", "typescript-eslint": "latest", "eslint-plugin-react-hooks": "latest" }
+  "dependencies": { "@react-three/drei": "latest", "@react-three/fiber": "latest", "@vitejs/plugin-react": "latest", "three": "latest", "vite": "latest", "react": "19.2.8", "react-dom": "19.2.8" },
+  "devDependencies": { "@types/node": "latest", "@types/react": "latest", "@types/react-dom": "latest", "@types/three": "latest", "typescript": "latest", "vitest": "latest", "eslint": "latest", "@eslint/js": "latest", "typescript-eslint": "latest", "eslint-plugin-react-hooks": "latest" }
 }
