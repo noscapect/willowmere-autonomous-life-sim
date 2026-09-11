@@ -1,19 +1,9 @@
-import type { Agent, SimulationWorld, WorldObject } from '../domain/types';
-export type Decision = { goal: string; target: WorldObject; action: 'Drink' | 'Eat' | 'Sleep' | 'TalkTo' | 'Observe' };
-export interface CognitionProvider { decide(agent: Agent, world: SimulationWorld): Decision | null }
-/** Deterministic, replaceable cognition. It proposes intents; it cannot mutate world state. */
-export class LocalCognition implements CognitionProvider {
-  decide(agent: Agent, world: SimulationWorld): Decision | null {
-    const find = (type: WorldObject['type']) => world.objects.find(o => o.type === type)!;
-    if (agent.needs.thirst < 45) return { goal: 'Quench thirst', target: find('well'), action: 'Drink' };
-    if (agent.needs.hunger < 42) return { goal: 'Find something to eat', target: find('berryBush'), action: 'Eat' };
-    if (agent.needs.energy < 35) return { goal: 'Rest at home', target: world.objects.find(o => o.id === agent.homeId)!, action: 'Sleep' };
-    if (agent.needs.social < 35) {
-      const other = world.agents.find(a => a.id !== agent.id)!;
-      return { goal: `Talk with ${other.name}`, target: { id: other.id, name: other.name, type: 'bench', position: other.position, usable: true }, action: 'TalkTo' };
-    }
-    return { goal: 'Take in the morning', target: find('bench'), action: 'Observe' };
-  }
-}
-/** Contract for a future strict-schema LLM adapter. Its output remains only a proposed Decision. */
-export class LlmCognitionProvider implements CognitionProvider { decide(): Decision | null { return null; } }
+import type { ActionKind, ActionTarget, Agent, AgentPerception, KnownFact } from '../domain/types';
+export type Decision={goal:string;target:ActionTarget;action:Extract<ActionKind,'Drink'|'Eat'|'Sleep'|'TalkTo'|'Observe'>};
+export type CognitionContext={agent:Agent;perception:AgentPerception;knowledge:KnownFact[];tick:number;seed:number};
+export interface CognitionProvider { decide(context:CognitionContext):Decision|null }
+const known=(facts:KnownFact[],id:string)=>facts.find(f=>f.id===id);
+/** Pure deterministic cognition: it proposes a goal from perception and retained knowledge only. */
+export class LocalCognition implements CognitionProvider { decide({agent,perception,knowledge,tick,seed}:CognitionContext):Decision|null { const object=(id:string)=>known(knowledge,id)?{kind:'object' as const,objectId:id}:undefined; if(agent.needs.thirst<45){const t=object('well');if(t)return{goal:'Quench thirst',target:t,action:'Drink'};} if(agent.needs.hunger<42){const t=object('berries');if(t)return{goal:'Find something to eat',target:t,action:'Eat'};} if(agent.needs.energy<35)return{goal:'Rest at home',target:{kind:'object',objectId:agent.homeId},action:'Sleep'}; const socialThreshold=agent.traits.includes('lively')||agent.traits.includes('warm')?48:30; if(agent.needs.social<socialThreshold&&!agent.traits.includes('reserved')){const other=perception.agents[0];if(other)return{goal:`Talk with ${other.name}`,target:{kind:'agent',agentId:other.id},action:'TalkTo'};} if(agent.needs.thirst<58||agent.needs.hunger<55)return null; const places=[{x:35,y:25},{x:50,y:82},{x:88,y:55},{x:44,y:55}];const point=places[(seed+tick+agent.id.length*7)%places.length];return{goal:agent.traits.includes('curious')?'Explore an unfamiliar path':'Take in the settlement',target:{kind:'position',position:point},action:'Observe'}; } }
+/** A future LLM adapter must emit this same Decision schema; it receives no mutation authority. */
+export class LlmCognitionProvider implements CognitionProvider { decide():Decision|null{return null;} }

@@ -1,18 +1,9 @@
-import type { Action, Agent, SimulationWorld, WorldObject } from '../domain/types';
-const distance = (a: {x:number;y:number}, b: {x:number;y:number}) => Math.hypot(a.x - b.x, a.y - b.y);
-export const canInteract = (agent: Agent, target: WorldObject | undefined) => !!target && target.usable && distance(agent.position, target.position) <= 4.2;
-export function walkAction(target: {x:number;y:number}): Action { return { kind:'WalkTo', target, progress:0, duration:1, state:'running' }; }
-export function actAction(kind: Action['kind'], targetId: string): Action { return { kind, targetId, progress:0, duration: kind === 'Sleep' ? 8 : 2, state:'running' }; }
-export function validateAndApply(agent: Agent, action: Action, world: SimulationWorld): { ok: boolean; message: string } {
-  const target = world.objects.find(o => o.id === action.targetId);
-  if (!canInteract(agent, target)) return { ok:false, message: `${action.kind} failed: target is out of reach.` };
-  if (!target) return { ok:false, message: `${action.kind} failed: target does not exist.` };
-  switch (action.kind) {
-    case 'Drink': agent.needs.thirst = Math.min(100, agent.needs.thirst + 52); return { ok:true, message: `${agent.name} drew cool water from the well.` };
-    case 'Eat': if (!target.stock) return {ok:false, message:'Eat failed: no berries remain.'}; target.stock--; agent.needs.hunger = Math.min(100, agent.needs.hunger + 44); return { ok:true, message: `${agent.name} ate a handful of sunberries.` };
-    case 'Sleep': agent.needs.energy = Math.min(100, agent.needs.energy + 50); agent.needs.comfort = Math.min(100, agent.needs.comfort + 15); return { ok:true, message: `${agent.name} rested peacefully.` };
-    case 'TalkTo': agent.needs.social = Math.min(100, agent.needs.social + 22); return {ok:true,message:`${agent.name} shared a few words with a neighbor.`};
-    case 'Observe': agent.needs.comfort = Math.min(100, agent.needs.comfort + 5); return {ok:true,message:`${agent.name} paused to enjoy the meadow.`};
-    default: return {ok:true,message:`${agent.name} completed ${action.kind}.`};
-  }
-}
+import type { Action, ActionTarget, Agent, SimulationWorld, Vec, WorldObject } from '../domain/types';
+const distance=(a:Vec,b:Vec)=>Math.hypot(a.x-b.x,a.y-b.y);
+export const targetPosition=(target:ActionTarget,world:SimulationWorld):Vec|undefined=>target.kind==='position'?target.position:target.kind==='object'?(world.objects.find(o=>o.id===target.objectId)?.interactionPosition??world.objects.find(o=>o.id===target.objectId)?.position):world.agents.find(a=>a.id===target.agentId)?.position;
+const objectTarget=(target:ActionTarget|undefined,world:SimulationWorld)=>target?.kind==='object'?world.objects.find(o=>o.id===target.objectId):undefined;
+export const canInteract=(agent:Agent,target:WorldObject|undefined)=>!!target&&target.usable&&distance(agent.position,target.interactionPosition??target.position)<=(target.interactionRadius??4.2);
+export function walkAction(target:Vec,path:Vec[]):Action{return{kind:'WalkTo',target:{kind:'position',position:target},progress:0,duration:1,state:'running',path,waypoint:0};}
+export function actAction(kind:Action['kind'],target:ActionTarget):Action{return{kind,target,progress:0,duration:kind==='Sleep'?8:2,state:'running'};}
+export type ActionResult={ok:boolean;message:string;other?:Agent};
+export function validateAndApply(agent:Agent,action:Action,world:SimulationWorld):ActionResult { const target=objectTarget(action.target,world); if(action.kind==='Observe'){agent.needs.comfort=Math.min(100,agent.needs.comfort+5);return{ok:true,message:`${agent.name} paused to take in Willowmere.`};} if(action.kind==='TalkTo'){const talkTarget=action.target;if(talkTarget?.kind!=='agent')return{ok:false,message:'Talk failed: target must be an agent.'};const other=world.agents.find(a=>a.id===talkTarget.agentId);if(!other||other.id===agent.id)return{ok:false,message:'Talk failed: no valid neighbor.'};if(other.currentAction.kind==='Sleep'||distance(agent.position,other.position)>5)return{ok:false,message:'Talk failed: neighbor is unavailable.'};agent.needs.social=Math.min(100,agent.needs.social+20);other.needs.social=Math.min(100,other.needs.social+16);return{ok:true,message:`${agent.name} and ${other.name} shared a warm conversation.`,other};} if(!canInteract(agent,target))return{ok:false,message:`${action.kind} failed: target is out of reach.`}; switch(action.kind){case'Drink':if(target!.type!=='well')return{ok:false,message:'Drink failed: that is not water.'};agent.needs.thirst=Math.min(100,agent.needs.thirst+52);return{ok:true,message:`${agent.name} drew cool water from the well.`};case'Eat':if(target!.type!=='berryBush'||!target!.stock)return{ok:false,message:'Eat failed: no berries remain.'};target!.stock!--;agent.needs.hunger=Math.min(100,agent.needs.hunger+44);return{ok:true,message:`${agent.name} ate a handful of sunberries.`};case'Sleep':if(target!.type!=='bed')return{ok:false,message:'Sleep failed: a bed is required.'};agent.needs.energy=Math.min(100,agent.needs.energy+50);agent.needs.comfort=Math.min(100,agent.needs.comfort+15);return{ok:true,message:`${agent.name} rested peacefully.`};default:return{ok:true,message:`${agent.name} completed ${action.kind}.`};}}
